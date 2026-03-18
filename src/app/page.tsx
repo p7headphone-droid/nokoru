@@ -1,6 +1,6 @@
 import { getPosts } from '@/lib/posts'
-import PostCard from '@/components/post/PostCard'
 import { createClient } from '@/lib/supabase/server'
+import FeedClient from '@/components/feed/FeedClient'
 
 export const revalidate = 0
 
@@ -16,17 +16,7 @@ export default async function HomePage() {
         <p className="text-sm text-gray-500 mt-1">学んだことをシェアして、一緒に成長しよう</p>
       </div>
 
-      {posts.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">まだ投稿がありません。最初の学習ノートを書いてみましょう！</p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {posts.map(post => (
-            <PostCard key={post.id} post={post} currentUserId={user?.id} />
-          ))}
-        </div>
-      )}
+      <FeedClient posts={posts} currentUserId={user?.id} />
     </div>
   )
 }

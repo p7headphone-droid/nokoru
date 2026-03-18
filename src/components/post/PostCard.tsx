@@ -78,12 +78,14 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
         </div>
       )}
 
-      <ReactionButtons
-        postId={post.id}
-        counts={post.reaction_counts}
-        userReactions={currentUserId ? post.user_reactions : []}
-        isLoggedIn={!!currentUserId}
-      />
+      {post.mode !== 'diary' && (
+        <ReactionButtons
+          postId={post.id}
+          counts={post.reaction_counts}
+          userReactions={currentUserId ? post.user_reactions : []}
+          isLoggedIn={!!currentUserId}
+        />
+      )}
     </article>
   )
 }

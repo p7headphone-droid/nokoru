@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm'
 import { getPost } from '@/lib/posts'
 import { createClient } from '@/lib/supabase/server'
 import ReactionButtons from '@/components/post/ReactionButton'
-import { MoodEffect, TimeBackground } from '@/components/post/DiaryEffects'
+import { DiaryCanvas } from '@/components/post/DiaryEffects'
 import { deletePost } from '@/app/actions/posts'
 import { Trash2 } from 'lucide-react'
 
@@ -29,8 +29,7 @@ export default async function PostDetailPage({ params }: Props) {
   return (
     <>
       {/* 日記モード専用エフェクト */}
-      {isDiary && <TimeBackground createdAt={post.created_at} />}
-      {isDiary && post.mood && <MoodEffect mood={post.mood} />}
+      {isDiary && <DiaryCanvas mood={post.mood} createdAt={post.created_at} />}
 
       <div className="max-w-3xl mx-auto relative" style={{ zIndex: 1 }}>
         <article className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
