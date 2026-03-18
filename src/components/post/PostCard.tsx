@@ -2,7 +2,18 @@ import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import ReactionButtons from './ReactionButton'
-import type { Post, ReactionType } from '@/types'
+import type { Post, ReactionType, Visibility, PostMode } from '@/types'
+
+const VISIBILITY_BADGE: Record<Visibility, { icon: string; label: string; className: string }> = {
+  public:  { icon: '🌐', label: '全体公開', className: 'text-indigo-600' },
+  friends: { icon: '👥', label: '友達限定', className: 'text-amber-600' },
+  private: { icon: '🔒', label: '非公開',   className: 'text-gray-500' },
+}
+
+const MODE_BADGE: Record<PostMode, { icon: string; label: string }> = {
+  note:  { icon: '📚', label: '学習ノート' },
+  diary: { icon: '📔', label: '日記' },
+}
 
 interface PostCardProps {
   post: Post
@@ -12,20 +23,34 @@ interface PostCardProps {
 export default function PostCard({ post, currentUserId }: PostCardProps) {
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
-          {(post.profile.display_name || post.profile.username)[0].toUpperCase()}
+      <div className="flex items-center justify-between gap-2.5 mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
+            {(post.profile.display_name || post.profile.username)[0].toUpperCase()}
+          </div>
+          <div>
+            <Link
+              href={`/user/${post.profile.username}`}
+              className="text-sm font-medium text-gray-800 hover:text-indigo-600"
+            >
+              {post.profile.display_name || post.profile.username}
+            </Link>
+            <p className="text-xs text-gray-400">
+              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ja })}
+            </p>
+          </div>
         </div>
-        <div>
-          <Link
-            href={`/user/${post.profile.username}`}
-            className="text-sm font-medium text-gray-800 hover:text-indigo-600"
-          >
-            {post.profile.display_name || post.profile.username}
-          </Link>
-          <p className="text-xs text-gray-400">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ja })}
-          </p>
+        <div className="flex items-center gap-2 shrink-0">
+          {post.mode && (
+            <span className="text-xs text-gray-400">
+              {MODE_BADGE[post.mode]?.icon} {MODE_BADGE[post.mode]?.label}
+            </span>
+          )}
+          {post.visibility && post.visibility !== 'public' && (
+            <span className={`text-xs font-medium ${VISIBILITY_BADGE[post.visibility].className}`}>
+              {VISIBILITY_BADGE[post.visibility].icon} {VISIBILITY_BADGE[post.visibility].label}
+            </span>
+          )}
         </div>
       </div>
 

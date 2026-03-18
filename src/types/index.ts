@@ -1,4 +1,6 @@
 export type ReactionType = 'wakaru' | 'omoshiroi' | 'ki_ni_naru'
+export type Visibility = 'public' | 'friends' | 'private'
+export type PostMode = 'note' | 'diary'
 
 export interface Profile {
   id: string
@@ -19,6 +21,8 @@ export interface Post {
   user_id: string
   title: string
   content: string
+  visibility: Visibility
+  mode: PostMode
   created_at: string
   updated_at: string
   profile: Profile

@@ -8,6 +8,8 @@ export async function createPost(formData: {
   title: string
   content: string
   tags: string[]
+  mode?: 'note' | 'diary'
+  visibility?: 'public' | 'friends' | 'private'
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,7 +18,13 @@ export async function createPost(formData: {
 
   const { data: post, error: postError } = await supabase
     .from('posts')
-    .insert({ title: formData.title, content: formData.content, user_id: user.id })
+    .insert({
+      title: formData.title,
+      content: formData.content,
+      user_id: user.id,
+      mode: formData.mode ?? 'note',
+      visibility: formData.visibility ?? 'public',
+    })
     .select('id')
     .single()
 

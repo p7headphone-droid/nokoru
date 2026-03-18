@@ -20,8 +20,18 @@ create table public.posts (
   user_id uuid references public.profiles(id) on delete cascade not null,
   title text not null,
   content text not null,
+  mode text check (mode in ('note', 'diary')) default 'note' not null,
+  visibility text check (visibility in ('public', 'friends', 'private')) default 'public' not null,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
+);
+
+-- Follows (相互フォローで「友達」を定義)
+create table public.follows (
+  follower_id uuid references public.profiles(id) on delete cascade,
+  following_id uuid references public.profiles(id) on delete cascade,
+  created_at timestamptz default now() not null,
+  primary key (follower_id, following_id)
 );
 
 -- Post-Tag中間テーブル
@@ -47,16 +57,38 @@ alter table public.posts enable row level security;
 alter table public.tags enable row level security;
 alter table public.post_tags enable row level security;
 alter table public.reactions enable row level security;
+alter table public.follows enable row level security;
 
 -- Profiles RLS
 create policy "誰でも閲覧可" on public.profiles for select using (true);
 create policy "本人のみ更新可" on public.profiles for update using (auth.uid() = id);
 
 -- Posts RLS
-create policy "誰でも閲覧可" on public.posts for select using (true);
+-- 全体公開: 誰でも閲覧可 / 友達限定: 相互フォローのみ / 非公開: 本人のみ
+create policy "visibility別閲覧制御" on public.posts for select using (
+  visibility = 'public'
+  or auth.uid() = user_id
+  or (
+    visibility = 'friends'
+    and auth.uid() is not null
+    and exists (
+      select 1 from public.follows f1
+      join public.follows f2
+        on f1.follower_id = f2.following_id
+        and f1.following_id = f2.follower_id
+      where f1.follower_id = auth.uid()
+        and f1.following_id = user_id
+    )
+  )
+);
 create policy "認証ユーザーが作成可" on public.posts for insert with check (auth.uid() = user_id);
 create policy "本人のみ更新可" on public.posts for update using (auth.uid() = user_id);
 create policy "本人のみ削除可" on public.posts for delete using (auth.uid() = user_id);
+
+-- Follows RLS
+create policy "誰でも閲覧可" on public.follows for select using (true);
+create policy "認証ユーザーがフォロー可" on public.follows for insert with check (auth.uid() = follower_id);
+create policy "本人のみ削除可" on public.follows for delete using (auth.uid() = follower_id);
 
 -- Tags RLS
 create policy "誰でも閲覧可" on public.tags for select using (true);
