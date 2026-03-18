@@ -8,7 +8,7 @@ export async function getPosts(options?: { tag?: string; userId?: string; limit?
   let query = supabase
     .from('posts')
     .select(`
-      id, title, content, visibility, mode, created_at, updated_at, user_id,
+      id, title, content, visibility, mode, mood, created_at, updated_at, user_id,
       profile:profiles!posts_user_id_fkey(id, username, display_name, avatar_url),
       post_tags(tag:tags(id, name)),
       reactions(reaction_type, user_id)
@@ -38,7 +38,7 @@ export async function getPost(id: string) {
   const { data, error } = await supabase
     .from('posts')
     .select(`
-      id, title, content, visibility, mode, created_at, updated_at, user_id,
+      id, title, content, visibility, mode, mood, created_at, updated_at, user_id,
       profile:profiles!posts_user_id_fkey(id, username, display_name, avatar_url),
       post_tags(tag:tags(id, name)),
       reactions(reaction_type, user_id)
@@ -72,6 +72,7 @@ function formatPost(row: any, currentUserId?: string): Post {
     content: row.content,
     visibility: row.visibility ?? 'public',
     mode: row.mode ?? 'note',
+    mood: row.mood ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     profile: row.profile,

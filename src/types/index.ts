@@ -23,6 +23,7 @@ export interface Post {
   content: string
   visibility: Visibility
   mode: PostMode
+  mood: string | null
   created_at: string
   updated_at: string
   profile: Profile

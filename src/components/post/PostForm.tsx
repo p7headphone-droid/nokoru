@@ -27,6 +27,7 @@ export default function PostForm() {
   const [content, setContent] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [visibility, setVisibility] = useState<Visibility>('public')
+  const [mood, setMood] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const autoFilledTitle = useRef(false)
@@ -45,6 +46,7 @@ export default function PostForm() {
         autoFilledTitle.current = false
       }
       setVisibility('public')
+      setMood(null)
     }
   }
 
@@ -65,6 +67,7 @@ export default function PostForm() {
         tags,
         mode,
         visibility,
+        mood: mode === 'diary' ? mood : null,
       })
       if (result && !result.success) setError(result.error ?? '投稿に失敗しました')
     })
@@ -173,6 +176,40 @@ export default function PostForm() {
           <p className="mt-1.5 text-xs text-gray-400">{activeVisibility.description}</p>
         )}
       </div>
+
+      {/* Mood (diary only) */}
+      {isDiary && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">今日の気分（任意）</label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: 'happy',    label: '楽しい', emoji: '😊',
+                active: 'border-yellow-400 bg-yellow-50 text-yellow-700',
+                hover:  'hover:border-yellow-300 hover:bg-yellow-50' },
+              { value: 'sad',      label: 'つらい', emoji: '😔',
+                active: 'border-violet-400 bg-violet-50 text-violet-700',
+                hover:  'hover:border-violet-300 hover:bg-violet-50' },
+              { value: 'positive', label: '前向き', emoji: '💪',
+                active: 'border-orange-400 bg-orange-50 text-orange-700',
+                hover:  'hover:border-orange-300 hover:bg-orange-50' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setMood(mood === opt.value ? null : opt.value)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
+                  mood === opt.value
+                    ? opt.active
+                    : `border-gray-200 text-gray-500 ${opt.hover}`
+                }`}
+              >
+                <span>{opt.emoji}</span>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tags */}
       <div>

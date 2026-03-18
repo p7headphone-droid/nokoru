@@ -10,6 +10,7 @@ export async function createPost(formData: {
   tags: string[]
   mode?: 'note' | 'diary'
   visibility?: 'public' | 'friends' | 'private'
+  mood?: string | null
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -24,6 +25,7 @@ export async function createPost(formData: {
       user_id: user.id,
       mode: formData.mode ?? 'note',
       visibility: formData.visibility ?? 'public',
+      mood: formData.mood ?? null,
     })
     .select('id')
     .single()
