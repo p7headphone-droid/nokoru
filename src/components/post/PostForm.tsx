@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import TagInput from './TagInput'
 import { createPost } from '@/app/actions/posts'
@@ -29,15 +29,28 @@ export default function PostForm() {
   const [visibility, setVisibility] = useState<Visibility>('public')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const autoFilledTitle = useRef(false)
 
   const switchMode = (newMode: PostMode) => {
     setMode(newMode)
     if (newMode === 'diary') {
-      if (!title) setTitle(getTodayTitle())
+      if (!title) {
+        setTitle(getTodayTitle())
+        autoFilledTitle.current = true
+      }
       setVisibility('friends')
     } else {
+      if (autoFilledTitle.current) {
+        setTitle('')
+        autoFilledTitle.current = false
+      }
       setVisibility('public')
     }
+  }
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value)
+    autoFilledTitle.current = false
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,7 +72,7 @@ export default function PostForm() {
 
   const isDiary = mode === 'diary'
   const contentPlaceholder = isDiary
-    ? '今日はどんな一日でしたか？まず一行目から書いてみましょう'
+    ? '今日はどんな一日でしたか？まずは一行目から書いてみましょう'
     : '学んだことや気づきを書いてみましょう...'
 
   const activeVisibility = VISIBILITY_OPTIONS.find(o => o.value === visibility)
@@ -100,7 +113,7 @@ export default function PostForm() {
         <input
           type="text"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={handleTitleChange}
           placeholder={isDiary ? getTodayTitle() : '今日学んだことのタイトル'}
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
         />
