@@ -18,10 +18,23 @@ export async function getPosts(options?: { tag?: string; userId?: string; limit?
 
   if (options?.userId) query = query.eq('user_id', options.userId)
 
+  // 未ログインユーザーには公開投稿のみ返す（RLSに加えてアプリ層でも制御）
+  if (!user) {
+    query = query.eq('visibility', 'public')
+  }
+
   const { data, error } = await query
   if (error || !data) return []
 
   let posts = data.map(row => formatPost(row, user?.id)) as Post[]
+
+  // 二重フィルタ：RLSが無効でも他人の非公開投稿を漏らさないようにする
+  posts = posts.filter(p => {
+    if (p.visibility === 'public') return true
+    if (p.user_id === user?.id) return true       // 自分の投稿はすべて表示
+    if (p.visibility === 'private') return false   // 他人の非公開は非表示
+    return true                                     // 友達限定はRLSに委ねる
+  })
 
   // タグフィルタ（クライアントサイド）
   if (options?.tag) {
@@ -47,6 +60,9 @@ export async function getPost(id: string) {
     .single()
 
   if (error || !data) return null
+
+  // 非公開投稿は本人以外アクセス不可
+  if (data.visibility === 'private' && data.user_id !== user?.id) return null
 
   return formatPost(data, user?.id) as Post
 }

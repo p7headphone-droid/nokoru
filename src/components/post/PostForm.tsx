@@ -189,7 +189,7 @@ export default function PostForm() {
               { value: 'sad',      label: 'つらい', emoji: '😔',
                 active: 'border-violet-400 bg-violet-50 text-violet-700',
                 hover:  'hover:border-violet-300 hover:bg-violet-50' },
-              { value: 'positive', label: '前向き', emoji: '💪',
+              { value: 'positive', label: 'がんばる', emoji: '💪',
                 active: 'border-orange-400 bg-orange-50 text-orange-700',
                 hover:  'hover:border-orange-300 hover:bg-orange-50' },
             ].map(opt => (

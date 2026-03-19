@@ -94,8 +94,29 @@ create policy "本人のみ削除可" on public.follows for delete using (auth.u
 create policy "誰でも閲覧可" on public.tags for select using (true);
 create policy "認証ユーザーが作成可" on public.tags for insert with check (auth.role() = 'authenticated');
 
--- Post_tags RLS
-create policy "誰でも閲覧可" on public.post_tags for select using (true);
+-- Post_tags RLS（非公開投稿のタグが漏れないよう投稿の閲覧権限に連動）
+create policy "投稿閲覧権限に連動" on public.post_tags for select using (
+  exists (
+    select 1 from public.posts p
+    where p.id = post_tags.post_id
+      and (
+        p.visibility = 'public'
+        or auth.uid() = p.user_id
+        or (
+          p.visibility = 'friends'
+          and auth.uid() is not null
+          and exists (
+            select 1 from public.follows f1
+            join public.follows f2
+              on f1.follower_id = f2.following_id
+              and f1.following_id = f2.follower_id
+            where f1.follower_id = auth.uid()
+              and f1.following_id = p.user_id
+          )
+        )
+      )
+  )
+);
 create policy "投稿者が管理可" on public.post_tags for insert with check (
   auth.uid() = (select user_id from public.posts where id = post_id)
 );
@@ -103,8 +124,29 @@ create policy "投稿者が削除可" on public.post_tags for delete using (
   auth.uid() = (select user_id from public.posts where id = post_id)
 );
 
--- Reactions RLS
-create policy "誰でも閲覧可" on public.reactions for select using (true);
+-- Reactions RLS（非公開投稿のリアクションが漏れないよう投稿の閲覧権限に連動）
+create policy "投稿閲覧権限に連動" on public.reactions for select using (
+  exists (
+    select 1 from public.posts p
+    where p.id = reactions.post_id
+      and (
+        p.visibility = 'public'
+        or auth.uid() = p.user_id
+        or (
+          p.visibility = 'friends'
+          and auth.uid() is not null
+          and exists (
+            select 1 from public.follows f1
+            join public.follows f2
+              on f1.follower_id = f2.following_id
+              and f1.following_id = f2.follower_id
+            where f1.follower_id = auth.uid()
+              and f1.following_id = p.user_id
+          )
+        )
+      )
+  )
+);
 create policy "認証ユーザーが作成可" on public.reactions for insert with check (auth.uid() = user_id);
 create policy "本人のみ削除可" on public.reactions for delete using (auth.uid() = user_id);
 

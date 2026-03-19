@@ -10,7 +10,7 @@ const MOOD_OPTIONS: { value: MoodFilter; label: string; emoji: string }[] = [
   { value: 'all',      label: 'すべて', emoji: '✨' },
   { value: 'happy',    label: '楽しい', emoji: '😊' },
   { value: 'sad',      label: 'つらい', emoji: '😔' },
-  { value: 'positive', label: '前向き', emoji: '💪' },
+  { value: 'positive', label: 'がんばる', emoji: '💪' },
 ]
 
 const ACTIVE_STYLES: Record<MoodFilter, string> = {

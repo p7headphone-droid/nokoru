@@ -61,7 +61,7 @@ export default async function PostDetailPage({ params }: Props) {
                   post.mood === 'positive' ? 'bg-orange-50 text-orange-700' : ''
                 }`}>
                   {post.mood === 'happy' ? '😊 楽しい' :
-                   post.mood === 'sad'   ? '😔 つらい' : '💪 前向き'}
+                   post.mood === 'sad'   ? '😔 つらい' : '💪 がんばる'}
                 </span>
               )}
 
