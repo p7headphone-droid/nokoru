@@ -9,7 +9,7 @@ export default async function StudyAllPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const posts = await getPosts({ mode: 'note' })
+  const posts = await getPosts({ mode: 'note', excludeUserId: user?.id })
 
   return (
     <div>

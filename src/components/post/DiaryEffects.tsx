@@ -77,43 +77,78 @@ function drawSunTopRight(ctx: CanvasRenderingContext2D, W: number, t: number) {
   ctx.restore()
 }
 
-// ─── 共通ヘルパー: 自然で柔らかい雲を描画 ───────────────────────────────────
-// 複数の円を重ねてシームレスな雲の輪郭を作る
-function drawSoftCloud(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
+// ─── 共通ヘルパー: 雲をオフスクリーンcanvasにプレレンダリング ───────────────
+// globalAlpha=1 で同色の円を並べると重なりが視覚上消える → 立体影も付与
+function makeCloudCanvas(
   rx: number, ry: number,
-  color: string, opacity: number
-) {
-  ctx.save()
-  ctx.globalAlpha = opacity
-  ctx.fillStyle = color
+  fillColor: string, shadowColor: string
+): HTMLCanvasElement {
+  const pad  = ry * 0.85 + 18
+  const w    = Math.ceil(rx * 2.9 + pad * 2)
+  const h    = Math.ceil(ry * 2.9 + pad * 2)
+  const c    = document.createElement('canvas')
+  c.width  = w
+  c.height = h
+  const ctx  = c.getContext('2d')!
+  const cx   = w / 2
+  const cy   = h * 0.43
 
-  // 各パフ: { ox, oy, r } — 重なり合うことで自然な雲の形になる
   const puffs = [
-    { ox: 0,          oy: 0,          r: ry * 1.00 }, // 中央ベース（最大）
-    { ox: -rx * 0.38, oy:  ry * 0.05, r: ry * 0.88 }, // 左ベース
-    { ox:  rx * 0.38, oy:  ry * 0.05, r: ry * 0.82 }, // 右ベース
-    { ox: -rx * 0.65, oy:  ry * 0.15, r: ry * 0.65 }, // 左端
-    { ox:  rx * 0.65, oy:  ry * 0.18, r: ry * 0.60 }, // 右端
-    { ox: -rx * 0.15, oy: -ry * 0.52, r: ry * 0.72 }, // 中央左上
-    { ox:  rx * 0.22, oy: -ry * 0.58, r: ry * 0.65 }, // 中央右上
-    { ox: -rx * 0.48, oy: -ry * 0.30, r: ry * 0.55 }, // 左上
+    { ox: 0,           oy: 0,           r: ry },
+    { ox: -rx * 0.38,  oy:  ry * 0.05,  r: ry * 0.88 },
+    { ox:  rx * 0.38,  oy:  ry * 0.05,  r: ry * 0.82 },
+    { ox: -rx * 0.65,  oy:  ry * 0.15,  r: ry * 0.65 },
+    { ox:  rx * 0.65,  oy:  ry * 0.18,  r: ry * 0.60 },
+    { ox: -rx * 0.15,  oy: -ry * 0.52,  r: ry * 0.72 },
+    { ox:  rx * 0.22,  oy: -ry * 0.58,  r: ry * 0.65 },
+    { ox: -rx * 0.48,  oy: -ry * 0.30,  r: ry * 0.55 },
   ]
 
+  // ① 影（雲の下方に楕円で自然なドロップシャドウ）
+  ctx.save()
+  ctx.globalAlpha = 0.32
+  ctx.fillStyle   = shadowColor
+  ctx.beginPath()
+  ctx.ellipse(cx, cy + ry * 0.72, rx * 0.72, ry * 0.22, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // ② 雲本体（同色・globalAlpha=1 → 重なり境界が消えて一体化）
+  ctx.save()
+  ctx.fillStyle = fillColor
+  // 輪郭にごく薄いシャドウをのせて立体感を出す
+  ctx.shadowBlur    = ry * 0.28
+  ctx.shadowColor   = shadowColor
+  ctx.shadowOffsetY = ry * 0.18
   puffs.forEach(p => {
     ctx.beginPath()
     ctx.arc(cx + p.ox, cy + p.oy, p.r, 0, Math.PI * 2)
     ctx.fill()
   })
   ctx.restore()
+
+  return c
 }
 
 // ─── 共通ヘルパー: 雲オブジェクト生成 ──────────────────────────────────────
 function makeCloud(
-  x: number, y: number, rx: number, ry: number, dirX: number
+  x: number, y: number, rx: number, ry: number, dirX: number,
+  fillColor: string, shadowColor: string
 ) {
-  return { x, y, rx, ry, dirX, opacity: 0.88 }
+  return { x, y, rx, ry, dirX, opacity: 0.92, img: makeCloudCanvas(rx, ry, fillColor, shadowColor) }
+}
+
+// ─── 共通ヘルパー: プレレンダリング済み雲を描画 ─────────────────────────────
+function drawCloudImage(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  img: HTMLCanvasElement,
+  opacity: number
+) {
+  ctx.save()
+  ctx.globalAlpha = opacity
+  ctx.drawImage(img, cx - img.width / 2, cy - img.height / 2)
+  ctx.restore()
 }
 
 // ─── Happy / Day: Swaying Grass ──────────────────────────────────────────────
@@ -254,14 +289,14 @@ function runHappyNight(canvas: HTMLCanvasElement): () => void {
   }))
 
   function spawn(s: ShootingStar) {
-    // 右上エリアから左下方向に固定（多少のランダム性あり）
-    const angle = (Math.PI * 5) / 12 + (Math.random() - 0.5) * 0.4
-    const speed = 11 + Math.random() * 8
-    // 右側上部から出現
-    s.x = W * 0.45 + Math.random() * W * 0.7
-    s.y = Math.random() * H * 0.35
+    // 225度方向（右上→左下）。angle=π/4 で vx=-cos45°*spd, vy=sin45°*spd → 斜め45°左下
+    const angle = Math.PI / 4 + (Math.random() - 0.5) * (Math.PI / 18)  // 45° ±10°
+    const speed = 12 + Math.random() * 8
+    // 右上エリアから出現（画面右寄り・上部）
+    s.x = W * 0.50 + Math.random() * W * 0.60
+    s.y = -10 + Math.random() * H * 0.30
     s.vx = -Math.cos(angle) * speed
-    s.vy = Math.sin(angle) * speed
+    s.vy =  Math.sin(angle) * speed
     s.tailLen = 150 + Math.random() * 140   // 大きくする
     s.maxLife = 40 + Math.random() * 25
     s.life = 0
@@ -376,7 +411,7 @@ function runHappyNight(canvas: HTMLCanvasElement): () => void {
   return () => cancelAnimationFrame(rafId)
 }
 
-// ─── Sad: 曇り（雨なし・自然な雲・ゆっくり流れる） ───────────────────────────
+// ─── Sad: 曇り（雨なし・塗りつぶし雲・ゆっくり流れる） ──────────────────────
 function runSad(canvas: HTMLCanvasElement, isNight: boolean): () => void {
   const ctx = canvas.getContext('2d')!
   canvas.width = window.innerWidth
@@ -384,25 +419,22 @@ function runSad(canvas: HTMLCanvasElement, isNight: boolean): () => void {
   const W = canvas.width
   const H = canvas.height
 
-  // 昼：明るめ水色グレー / 夜：柔らかな青みがかったグレー（どす黒くない）
-  const cloudColor = isNight
-    ? 'rgba(85, 100, 138, 0.88)'
-    : 'rgba(172, 195, 218, 0.90)'
-  const bgOverlay = isNight
-    ? 'rgba(12, 18, 45, 0.30)'
-    : 'rgba(165, 195, 220, 0.18)'
+  const bgOverlay = isNight ? 'rgba(12, 18, 45, 0.30)' : 'rgba(165, 195, 220, 0.18)'
+  // 昼：白〜薄いグレー / 夜：薄い青みがかったグレー
+  const fillColor  = isNight ? 'rgb(100, 115, 152)' : 'rgb(215, 228, 238)'
+  const shadowColor = isNight ? 'rgba(18, 28, 72, 0.55)' : 'rgba(80, 115, 148, 0.40)'
 
-  type Cloud = { x: number; y: number; rx: number; ry: number; dirX: number; opacity: number }
+  type Cloud = { x: number; y: number; rx: number; ry: number; dirX: number; opacity: number; img: HTMLCanvasElement }
 
   // 画面を覆うように雲を配置
   const clouds: Cloud[] = [
-    makeCloud(W * 0.05,   H * 0.06,  270, 74, 0.12),
-    makeCloud(W * 0.38,   H * 0.03,  310, 84, 0.10),
-    makeCloud(W * 0.72,   H * 0.07,  280, 78, 0.14),
-    makeCloud(-W * 0.05,  H * 0.17,  240, 68, 0.11),
-    makeCloud(W * 0.52,   H * 0.16,  295, 80, 0.09),
-    makeCloud(W * 0.84,   H * 0.18,  215, 62, 0.13),
-    makeCloud(W * 0.24,   H * 0.24,  255, 70, 0.10),
+    makeCloud(W * 0.05,   H * 0.06,  270, 74, 0.12, fillColor, shadowColor),
+    makeCloud(W * 0.38,   H * 0.03,  310, 84, 0.10, fillColor, shadowColor),
+    makeCloud(W * 0.72,   H * 0.07,  280, 78, 0.14, fillColor, shadowColor),
+    makeCloud(-W * 0.05,  H * 0.17,  240, 68, 0.11, fillColor, shadowColor),
+    makeCloud(W * 0.52,   H * 0.16,  295, 80, 0.09, fillColor, shadowColor),
+    makeCloud(W * 0.84,   H * 0.18,  215, 62, 0.13, fillColor, shadowColor),
+    makeCloud(W * 0.24,   H * 0.24,  255, 70, 0.10, fillColor, shadowColor),
   ]
 
   let rafId: number
@@ -413,10 +445,10 @@ function runSad(canvas: HTMLCanvasElement, isNight: boolean): () => void {
     ctx.fillRect(0, 0, W, H)
 
     clouds.forEach(c => {
-      c.x += c.dirX * 0.12  // ゆっくり自然に流れる
+      c.x += c.dirX * 0.12
       if (c.x - c.rx > W + 60) c.x = -c.rx * 2.5
       if (c.x + c.rx < -60) c.x = W + c.rx * 2.5
-      drawSoftCloud(ctx, c.x, c.y, c.rx, c.ry, cloudColor, c.opacity)
+      drawCloudImage(ctx, c.x, c.y, c.img, c.opacity)
     })
 
     rafId = requestAnimationFrame(animate)
@@ -434,19 +466,21 @@ function runPositiveDay(canvas: HTMLCanvasElement): () => void {
   const W = canvas.width
   const H = canvas.height
 
-  // 太陽位置（右上固定）
   const SUN_X = W - 88
   const SUN_Y = 82
 
-  type Cloud = { x: number; y: number; rx: number; ry: number; dirX: number; opacity: number }
+  // positive/昼：白〜クリーム系
+  const fillColor   = 'rgb(242, 248, 255)'
+  const shadowColor = 'rgba(140, 185, 215, 0.38)'
 
-  // 太陽を隠すように右上に配置し、両側に退く
+  type Cloud = { x: number; y: number; rx: number; ry: number; dirX: number; opacity: number; img: HTMLCanvasElement }
+
   const clouds: Cloud[] = [
-    makeCloud(SUN_X - 180, SUN_Y + 20, 260, 78, -1),
-    makeCloud(SUN_X + 160, SUN_Y + 15, 280, 82,  1),
-    makeCloud(SUN_X - 60,  SUN_Y + 80, 230, 65, -1),
-    makeCloud(SUN_X + 40,  SUN_Y + 90, 200, 60,  1),
-    makeCloud(W * 0.25,    H * 0.28,   220, 62, -1),
+    makeCloud(SUN_X - 180, SUN_Y + 20, 260, 78, -1, fillColor, shadowColor),
+    makeCloud(SUN_X + 160, SUN_Y + 15, 280, 82,  1, fillColor, shadowColor),
+    makeCloud(SUN_X - 60,  SUN_Y + 80, 230, 65, -1, fillColor, shadowColor),
+    makeCloud(SUN_X + 40,  SUN_Y + 90, 200, 60,  1, fillColor, shadowColor),
+    makeCloud(W * 0.25,    H * 0.28,   220, 62, -1, fillColor, shadowColor),
   ]
 
   let t = 0
@@ -455,7 +489,6 @@ function runPositiveDay(canvas: HTMLCanvasElement): () => void {
   function animate() {
     ctx.clearRect(0, 0, W, H)
 
-    // 暖かい空グラデーション
     const sky = ctx.createLinearGradient(0, 0, 0, H)
     sky.addColorStop(0, 'rgba(255, 230, 110, 0.20)')
     sky.addColorStop(0.4, 'rgba(255, 245, 200, 0.08)')
@@ -463,13 +496,11 @@ function runPositiveDay(canvas: HTMLCanvasElement): () => void {
     ctx.fillStyle = sky
     ctx.fillRect(0, 0, W, H)
 
-    // 太陽（右上固定）
     drawSunTopRight(ctx, W, t)
 
-    // 雲が左右に退く
     clouds.forEach(c => {
       c.x += c.dirX * 0.40
-      drawSoftCloud(ctx, c.x, c.y, c.rx, c.ry, 'rgba(238, 246, 255, 1)', c.opacity)
+      drawCloudImage(ctx, c.x, c.y, c.img, c.opacity)
     })
 
     t++
@@ -501,14 +532,18 @@ function runPositiveNight(canvas: HTMLCanvasElement): () => void {
     phase: Math.random() * Math.PI * 2,
   }))
 
-  type Cloud = { x: number; y: number; rx: number; ry: number; dirX: number; opacity: number }
+  // positive/夜：白〜クリーム系（夜空に映える）
+  const fillColor   = 'rgb(235, 242, 255)'
+  const shadowColor = 'rgba(18, 28, 78, 0.48)'
+
+  type Cloud = { x: number; y: number; rx: number; ry: number; dirX: number; opacity: number; img: HTMLCanvasElement }
 
   // 月を隠すように配置し、両側に退く
   const clouds: Cloud[] = [
-    makeCloud(MOON_X - 185, MOON_Y + 18, 270, 82, -1),
-    makeCloud(MOON_X + 155, MOON_Y + 12, 285, 86,  1),
-    makeCloud(MOON_X - 55,  MOON_Y + 85, 225, 68, -1),
-    makeCloud(MOON_X + 35,  MOON_Y + 92, 205, 62,  1),
+    makeCloud(MOON_X - 185, MOON_Y + 18, 270, 82, -1, fillColor, shadowColor),
+    makeCloud(MOON_X + 155, MOON_Y + 12, 285, 86,  1, fillColor, shadowColor),
+    makeCloud(MOON_X - 55,  MOON_Y + 85, 225, 68, -1, fillColor, shadowColor),
+    makeCloud(MOON_X + 35,  MOON_Y + 92, 205, 62,  1, fillColor, shadowColor),
   ]
 
   let t = 0
@@ -553,10 +588,10 @@ function runPositiveNight(canvas: HTMLCanvasElement): () => void {
     // 月（右上固定）
     drawMoonTopRight(ctx, W)
 
-    // 雲が左右に退く（夜の雲: 柔らかな青みがかったグレー）
+    // 雲が左右に退く
     clouds.forEach(c => {
       c.x += c.dirX * 0.40
-      drawSoftCloud(ctx, c.x, c.y, c.rx, c.ry, 'rgba(55, 68, 105, 0.88)', c.opacity)
+      drawCloudImage(ctx, c.x, c.y, c.img, c.opacity)
     })
 
     t++

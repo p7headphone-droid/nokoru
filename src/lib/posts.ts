@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Post, ReactionType } from '@/types'
 
-export async function getPosts(options?: { tag?: string; userId?: string; limit?: number; mode?: 'note' | 'diary' }) {
+export async function getPosts(options?: { tag?: string; userId?: string; limit?: number; mode?: 'note' | 'diary'; excludeUserId?: string }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -18,6 +18,7 @@ export async function getPosts(options?: { tag?: string; userId?: string; limit?
 
   if (options?.userId) query = query.eq('user_id', options.userId)
   if (options?.mode) query = query.eq('mode', options.mode)
+  if (options?.excludeUserId) query = query.neq('user_id', options.excludeUserId)
 
   // 未ログインユーザーには公開投稿のみ返す（RLSに加えてアプリ層でも制御）
   if (!user) {

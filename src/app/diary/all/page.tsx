@@ -9,7 +9,7 @@ export default async function DiaryAllPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const posts = await getPosts({ mode: 'diary' })
+  const posts = await getPosts({ mode: 'diary', excludeUserId: user?.id })
 
   return (
     <div>
