@@ -35,14 +35,14 @@ export default async function PostDetailPage({ params }: Props) {
         <article className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           {/* Author */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0">
                 {(post.profile.display_name || post.profile.username)[0].toUpperCase()}
               </div>
-              <div>
+              <div className="min-w-0">
                 <Link
                   href={`/user/${post.profile.username}`}
-                  className="font-medium text-gray-900 hover:text-indigo-600"
+                  className="font-medium text-gray-900 hover:text-indigo-600 block truncate"
                 >
                   {post.profile.display_name || post.profile.username}
                 </Link>
@@ -52,9 +52,9 @@ export default async function PostDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 flex-nowrap">
+            <div className="flex items-center gap-1 shrink-0 flex-nowrap">
               {/* 公開レベルバッジ */}
-              <span className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${
+              <span className={`text-[9px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${
                 post.visibility === 'public'  ? 'border-indigo-200 text-indigo-600 bg-indigo-50' :
                 post.visibility === 'friends' ? 'border-amber-200 text-amber-600 bg-amber-50' :
                                                 'border-gray-200 text-gray-500 bg-gray-50'
@@ -64,7 +64,7 @@ export default async function PostDetailPage({ params }: Props) {
               </span>
               {/* moodバッジ */}
               {isDiary && post.mood && (
-                <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium whitespace-nowrap ${
+                <span className={`text-[9px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
                   post.mood === 'happy'    ? 'bg-yellow-50 text-yellow-700' :
                   post.mood === 'sad'      ? 'bg-violet-50 text-violet-700' :
                   post.mood === 'positive' ? 'bg-orange-50 text-orange-700' : ''

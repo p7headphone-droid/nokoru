@@ -28,28 +28,28 @@ export default function Header({ user }: HeaderProps) {
           Nokoru
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex items-center gap-0.5 sm:gap-2">
           {user ? (
             <>
               <Link
                 href="/post/new"
-                className="flex items-center gap-1 sm:gap-1.5 rounded-lg bg-indigo-600 px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                className="flex items-center gap-0.5 sm:gap-1.5 rounded-lg bg-indigo-600 px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[10px] sm:text-sm font-medium text-white hover:bg-indigo-700 transition-colors whitespace-nowrap"
               >
-                <PenSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <PenSquare className="h-3 w-3 sm:h-4 sm:w-4" />
                 投稿する
               </Link>
               <Link
                 href="/settings"
-                className="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-0.5 sm:gap-1.5 rounded-lg px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[10px] sm:text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors whitespace-nowrap"
               >
-                <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <User className="h-3 w-3 sm:h-4 sm:w-4" />
                 設定
               </Link>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-0.5 sm:gap-1.5 rounded-lg px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[10px] sm:text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors whitespace-nowrap"
               >
-                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
                 ログアウト
               </button>
             </>

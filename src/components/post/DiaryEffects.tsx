@@ -142,11 +142,11 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
     const base = GREENS[Math.floor(Math.random() * GREENS.length)]
     return {
       x: (W / bladeCount) * i + (Math.random() - 0.5) * 4,
-      height: H * 0.10 + Math.random() * H * 0.18,   // 草丈を少し控えめに
+      height: H * 0.10 + Math.random() * H * 0.18,
       width: 2 + Math.random() * 3,
       phase: Math.random() * Math.PI * 2,
-      swayAmount: 5 + Math.random() * 8,              // 揺れ幅を大幅に抑える（旧18-40→新5-13）
-      speed: 0.006 + Math.random() * 0.007,           // 速度を落とす（旧0.018-0.030→新0.006-0.013）
+      swayAmount: 2 + Math.random() * 4,              // ゆっくり穏やかに揺れる（2-6px）
+      speed: 0.003 + Math.random() * 0.004,           // 速度をさらに落とす（0.003-0.007）
       color: base,
       tipColor: '#A8D5BA',
       hasFlower: Math.random() < 0.07,
@@ -162,7 +162,7 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
     const windSway = Math.sin(t * blade.speed + blade.phase) * blade.swayAmount
       + Math.sin(t * blade.speed * 1.8 + blade.phase * 1.5) * (blade.swayAmount * 0.15) // 第2高調波を抑制
     const baseX = blade.x
-    const baseY = H - 1                             // 1px上げてクリッピングを防ぐ
+    const baseY = H + 6                             // 画面下端より少し下から生やす
     const tipX = baseX + windSway
     const tipY = baseY - blade.height
     const cp1x = baseX + windSway * 0.20
@@ -205,13 +205,13 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
     sky.addColorStop(1, 'rgba(0,0,0,0)')
     ctx.fillStyle = sky
     ctx.fillRect(0, 0, W, H)
-    // 地面パッチ: 草の根元が自然に地面に続くよう下部を塗りつぶす
-    const ground = ctx.createLinearGradient(0, H * 0.78, 0, H)
+    // 地面パッチ: 草の根元が自然に見えるよう下部をグラデーション
+    const ground = ctx.createLinearGradient(0, H * 0.80, 0, H)
     ground.addColorStop(0, 'rgba(27, 67, 50, 0.0)')
-    ground.addColorStop(0.5, 'rgba(27, 67, 50, 0.22)')
-    ground.addColorStop(1, 'rgba(22, 55, 40, 0.45)')
+    ground.addColorStop(0.6, 'rgba(27, 67, 50, 0.28)')
+    ground.addColorStop(1, 'rgba(22, 55, 40, 0.55)')
     ctx.fillStyle = ground
-    ctx.fillRect(0, H * 0.78, W, H * 0.22)
+    ctx.fillRect(0, H * 0.80, W, H * 0.20)
     blades.forEach(b => drawBlade(b))
     t++
     rafId = requestAnimationFrame(animate)

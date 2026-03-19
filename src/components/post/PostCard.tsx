@@ -24,14 +24,14 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between gap-2.5 mb-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
             {(post.profile.display_name || post.profile.username)[0].toUpperCase()}
           </div>
-          <div>
+          <div className="min-w-0">
             <Link
               href={`/user/${post.profile.username}`}
-              className="text-sm font-medium text-gray-800 hover:text-indigo-600"
+              className="text-sm font-medium text-gray-800 hover:text-indigo-600 block truncate"
             >
               {post.profile.display_name || post.profile.username}
             </Link>
@@ -40,14 +40,14 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+        <div className="flex items-center gap-1 shrink-0 flex-nowrap">
           {post.mode && (
-            <span className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">
+            <span className="text-[9px] sm:text-xs text-gray-400 whitespace-nowrap">
               {MODE_BADGE[post.mode]?.icon} {MODE_BADGE[post.mode]?.label}
             </span>
           )}
           {post.visibility && (
-            <span className={`text-[10px] sm:text-xs font-medium whitespace-nowrap ${VISIBILITY_BADGE[post.visibility].className}`}>
+            <span className={`text-[9px] sm:text-xs font-medium whitespace-nowrap ${VISIBILITY_BADGE[post.visibility].className}`}>
               {VISIBILITY_BADGE[post.visibility].icon} {VISIBILITY_BADGE[post.visibility].label}
             </span>
           )}
