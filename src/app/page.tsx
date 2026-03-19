@@ -4,6 +4,30 @@ import { BookOpen } from 'lucide-react'
 
 export const revalidate = 0
 
+function AboutSection() {
+  return (
+    <div className="w-full max-w-2xl mx-auto mb-10 rounded-2xl border border-gray-100 bg-white px-7 py-6 shadow-sm text-left">
+      <h2 className="text-sm font-bold text-gray-700 mb-4 tracking-wide">Nokoruについて</h2>
+      <div className="text-sm text-gray-600 leading-relaxed space-y-3">
+        <p>Nokoruは、学びと気持ちを残すための静かな個人スペースです。</p>
+        <p>
+          学習モードでは、今日学んだことや気になったことを書き残せます。
+          知的好奇心の軌跡が、ここに積み重なっていきます。
+        </p>
+        <hr className="border-gray-100" />
+        <p>
+          日記モードには、moodという機能があります。今の気持ちを選ぶと、
+          同じ気持ちで書かれた人の日記がフィードに流れてきます。
+        </p>
+        <p>
+          本当の意味での共感なんてできないかもしれない。でも、同じ気持ちで今日を生きている人がいると知るだけで、少し楽になれることがある。
+        </p>
+        <p>あなたは一人じゃないと気づける場所。それがNokoruであってほしいと思っています。</p>
+      </div>
+    </div>
+  )
+}
+
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -11,11 +35,14 @@ export default async function HomePage() {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="mb-10">
-          <BookOpen className="h-16 w-16 text-indigo-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Nokoru</h1>
-          <p className="text-gray-500 text-lg">学習と日記を記録・シェアするSNS</p>
+        <div className="mb-8">
+          <BookOpen className="h-14 w-14 text-indigo-400 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Nokoru</h1>
+          <p className="text-gray-500">学習と日記を記録・シェアするSNS</p>
         </div>
+
+        <AboutSection />
+
         <div className="flex gap-3">
           <Link
             href="/login"
@@ -36,10 +63,13 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="mb-10 text-center">
+      <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-gray-800">今日は何をしますか？</h1>
         <p className="text-gray-500 mt-1 text-sm">学習や日記を記録してみましょう</p>
       </div>
+
+      <AboutSection />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-2xl">
         <Link href="/study" className="group">
           <div className="rounded-2xl border-2 border-indigo-100 bg-white p-10 text-center hover:border-indigo-400 hover:shadow-lg transition-all group-hover:scale-[1.02] cursor-pointer">

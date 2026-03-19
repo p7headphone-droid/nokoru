@@ -78,21 +78,14 @@ function drawSunTopRight(ctx: CanvasRenderingContext2D, W: number, t: number) {
 }
 
 // ─── 共通ヘルパー: 雲をオフスクリーンcanvasにプレレンダリング ───────────────
-// globalAlpha=1 で同色の円を並べると重なりが視覚上消える → 立体影も付与
+// 2段階描画:
+//   [中間canvas] 全パフを同色・globalAlpha=1 で描く → 内部の境界線が消え一体化
+//   [最終canvas] 中間全体を1枚の画像として shadowBlur を1回だけ適用
+//                → 雲外周のみシャドウが出て、内部に影リングが入らない
 function makeCloudCanvas(
   rx: number, ry: number,
   fillColor: string, shadowColor: string
 ): HTMLCanvasElement {
-  const pad  = ry * 0.85 + 18
-  const w    = Math.ceil(rx * 2.9 + pad * 2)
-  const h    = Math.ceil(ry * 2.9 + pad * 2)
-  const c    = document.createElement('canvas')
-  c.width  = w
-  c.height = h
-  const ctx  = c.getContext('2d')!
-  const cx   = w / 2
-  const cy   = h * 0.43
-
   const puffs = [
     { ox: 0,           oy: 0,           r: ry },
     { ox: -rx * 0.38,  oy:  ry * 0.05,  r: ry * 0.88 },
@@ -104,30 +97,52 @@ function makeCloudCanvas(
     { ox: -rx * 0.48,  oy: -ry * 0.30,  r: ry * 0.55 },
   ]
 
-  // ① 影（雲の下方に楕円で自然なドロップシャドウ）
-  ctx.save()
-  ctx.globalAlpha = 0.32
-  ctx.fillStyle   = shadowColor
-  ctx.beginPath()
-  ctx.ellipse(cx, cy + ry * 0.72, rx * 0.72, ry * 0.22, 0, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
+  // ── 中間canvas: シャドウなし・同色全パフ → 内部境界が消えて一体化 ──
+  const iw   = Math.ceil(rx * 2.8 + 8)
+  const ih   = Math.ceil(ry * 2.6 + 8)
+  const mid  = document.createElement('canvas')
+  mid.width  = iw
+  mid.height = ih
+  const mCtx = mid.getContext('2d')!
+  const mcx  = iw / 2
+  const mcy  = ih * 0.44
 
-  // ② 雲本体（同色・globalAlpha=1 → 重なり境界が消えて一体化）
-  ctx.save()
-  ctx.fillStyle = fillColor
-  // 輪郭にごく薄いシャドウをのせて立体感を出す
-  ctx.shadowBlur    = ry * 0.28
-  ctx.shadowColor   = shadowColor
-  ctx.shadowOffsetY = ry * 0.18
+  mCtx.fillStyle = fillColor
   puffs.forEach(p => {
-    ctx.beginPath()
-    ctx.arc(cx + p.ox, cy + p.oy, p.r, 0, Math.PI * 2)
-    ctx.fill()
+    mCtx.beginPath()
+    mCtx.arc(mcx + p.ox, mcy + p.oy, p.r, 0, Math.PI * 2)
+    mCtx.fill()
   })
-  ctx.restore()
 
-  return c
+  // ── 最終canvas: 中間全体に1回だけシャドウを適用 ──
+  const shBlur = Math.ceil(ry * 0.32)
+  const shOffY = Math.ceil(ry * 0.44)
+  const padH   = shBlur + 6
+  const padBot = shOffY + shBlur + 6
+  const fw     = iw + padH * 2
+  const fh     = ih + padH + padBot
+  const fin    = document.createElement('canvas')
+  fin.width    = fw
+  fin.height   = fh
+  const fCtx   = fin.getContext('2d')!
+
+  // drawImage with shadow → 雲全体の外形にのみシャドウが当たる
+  fCtx.save()
+  fCtx.shadowBlur    = shBlur
+  fCtx.shadowColor   = shadowColor
+  fCtx.shadowOffsetX = 0
+  fCtx.shadowOffsetY = shOffY
+  fCtx.drawImage(mid, padH, padH)
+  fCtx.restore()
+
+  // 雲本体を再描画してシャドウのにじみを消す
+  fCtx.drawImage(mid, padH, padH)
+
+  // drawCloudImage が正確に中心を合わせられるよう視覚的中心を保存
+  ;(fin as any).__vcx = padH + mcx
+  ;(fin as any).__vcy = padH + mcy
+
+  return fin
 }
 
 // ─── 共通ヘルパー: 雲オブジェクト生成 ──────────────────────────────────────
@@ -145,9 +160,11 @@ function drawCloudImage(
   img: HTMLCanvasElement,
   opacity: number
 ) {
+  const vcx = (img as any).__vcx ?? img.width  / 2
+  const vcy = (img as any).__vcy ?? img.height / 2
   ctx.save()
   ctx.globalAlpha = opacity
-  ctx.drawImage(img, cx - img.width / 2, cy - img.height / 2)
+  ctx.drawImage(img, cx - vcx, cy - vcy)
   ctx.restore()
 }
 
