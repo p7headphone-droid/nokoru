@@ -15,6 +15,7 @@ interface ReactionButtonsProps {
   counts: Record<ReactionType, number>
   userReactions: ReactionType[]
   isLoggedIn: boolean
+  isDiary?: boolean
 }
 
 export default function ReactionButtons({
@@ -22,7 +23,12 @@ export default function ReactionButtons({
   counts: initialCounts,
   userReactions: initialUserReactions,
   isLoggedIn,
+  isDiary = false,
 }: ReactionButtonsProps) {
+  // 日記モードでは「面白い」を非表示にする
+  const visibleReactions = isDiary
+    ? REACTIONS.filter(r => r.type !== 'omoshiroi')
+    : REACTIONS
   const [counts, setCounts] = useState(initialCounts)
   const [userReactions, setUserReactions] = useState(initialUserReactions)
   const [isPending, startTransition] = useTransition()
@@ -46,7 +52,7 @@ export default function ReactionButtons({
 
   return (
     <div className="flex gap-2 flex-wrap">
-      {REACTIONS.map(({ type, label, emoji }) => {
+      {visibleReactions.map(({ type, label, emoji }) => {
         const active = userReactions.includes(type)
         return (
           <button

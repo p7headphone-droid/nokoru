@@ -52,9 +52,9 @@ export default async function PostDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-nowrap">
               {/* 公開レベルバッジ */}
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
+              <span className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${
                 post.visibility === 'public'  ? 'border-indigo-200 text-indigo-600 bg-indigo-50' :
                 post.visibility === 'friends' ? 'border-amber-200 text-amber-600 bg-amber-50' :
                                                 'border-gray-200 text-gray-500 bg-gray-50'
@@ -64,7 +64,7 @@ export default async function PostDetailPage({ params }: Props) {
               </span>
               {/* moodバッジ */}
               {isDiary && post.mood && (
-                <span className={`text-sm px-2.5 py-1 rounded-full font-medium ${
+                <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium whitespace-nowrap ${
                   post.mood === 'happy'    ? 'bg-yellow-50 text-yellow-700' :
                   post.mood === 'sad'      ? 'bg-violet-50 text-violet-700' :
                   post.mood === 'positive' ? 'bg-orange-50 text-orange-700' : ''
@@ -78,9 +78,9 @@ export default async function PostDetailPage({ params }: Props) {
                 <form action={async () => { 'use server'; await deletePost(id) }}>
                   <button
                     type="submit"
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-red-600 hover:bg-red-50 transition-colors whitespace-nowrap"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     削除
                   </button>
                 </form>
@@ -121,6 +121,7 @@ export default async function PostDetailPage({ params }: Props) {
                 counts={post.reaction_counts}
                 userReactions={user ? post.user_reactions : []}
                 isLoggedIn={!!user}
+                isDiary={isDiary}
               />
               {!user && (
                 <p className="text-xs text-gray-400 mt-2">

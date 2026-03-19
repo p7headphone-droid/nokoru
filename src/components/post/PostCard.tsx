@@ -40,14 +40,14 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
           {post.mode && (
-            <span className="text-xs text-gray-400">
+            <span className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">
               {MODE_BADGE[post.mode]?.icon} {MODE_BADGE[post.mode]?.label}
             </span>
           )}
           {post.visibility && (
-            <span className={`text-xs font-medium ${VISIBILITY_BADGE[post.visibility].className}`}>
+            <span className={`text-[10px] sm:text-xs font-medium whitespace-nowrap ${VISIBILITY_BADGE[post.visibility].className}`}>
               {VISIBILITY_BADGE[post.visibility].icon} {VISIBILITY_BADGE[post.visibility].label}
             </span>
           )}

@@ -142,11 +142,11 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
     const base = GREENS[Math.floor(Math.random() * GREENS.length)]
     return {
       x: (W / bladeCount) * i + (Math.random() - 0.5) * 4,
-      height: H * 0.12 + Math.random() * H * 0.22,
+      height: H * 0.10 + Math.random() * H * 0.18,   // 草丈を少し控えめに
       width: 2 + Math.random() * 3,
       phase: Math.random() * Math.PI * 2,
-      swayAmount: 18 + Math.random() * 22,
-      speed: 0.018 + Math.random() * 0.012,
+      swayAmount: 5 + Math.random() * 8,              // 揺れ幅を大幅に抑える（旧18-40→新5-13）
+      speed: 0.006 + Math.random() * 0.007,           // 速度を落とす（旧0.018-0.030→新0.006-0.013）
       color: base,
       tipColor: '#A8D5BA',
       hasFlower: Math.random() < 0.07,
@@ -160,21 +160,22 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
 
   function drawBlade(blade: Blade) {
     const windSway = Math.sin(t * blade.speed + blade.phase) * blade.swayAmount
-      + Math.sin(t * blade.speed * 2.3 + blade.phase * 1.7) * (blade.swayAmount * 0.3)
+      + Math.sin(t * blade.speed * 1.8 + blade.phase * 1.5) * (blade.swayAmount * 0.15) // 第2高調波を抑制
     const baseX = blade.x
+    const baseY = H - 1                             // 1px上げてクリッピングを防ぐ
     const tipX = baseX + windSway
-    const tipY = H - blade.height
-    const cp1x = baseX + windSway * 0.25
-    const cp1y = H - blade.height * 0.35
-    const cp2x = baseX + windSway * 0.65
-    const cp2y = H - blade.height * 0.72
-    const grad = ctx.createLinearGradient(baseX, H, tipX, tipY)
+    const tipY = baseY - blade.height
+    const cp1x = baseX + windSway * 0.20
+    const cp1y = baseY - blade.height * 0.32
+    const cp2x = baseX + windSway * 0.58
+    const cp2y = baseY - blade.height * 0.68
+    const grad = ctx.createLinearGradient(baseX, baseY, tipX, tipY)
     grad.addColorStop(0, blade.color)
     grad.addColorStop(0.6, blade.tipColor)
     grad.addColorStop(1, '#C8ECD5')
     ctx.save()
     ctx.beginPath()
-    ctx.moveTo(baseX, H)
+    ctx.moveTo(baseX, baseY)
     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, tipX, tipY)
     ctx.strokeStyle = grad
     ctx.lineWidth = blade.width
@@ -204,11 +205,13 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
     sky.addColorStop(1, 'rgba(0,0,0,0)')
     ctx.fillStyle = sky
     ctx.fillRect(0, 0, W, H)
-    const ground = ctx.createLinearGradient(0, H * 0.82, 0, H)
-    ground.addColorStop(0, 'rgba(27, 67, 50, 0.18)')
-    ground.addColorStop(1, 'rgba(27, 67, 50, 0.32)')
+    // 地面パッチ: 草の根元が自然に地面に続くよう下部を塗りつぶす
+    const ground = ctx.createLinearGradient(0, H * 0.78, 0, H)
+    ground.addColorStop(0, 'rgba(27, 67, 50, 0.0)')
+    ground.addColorStop(0.5, 'rgba(27, 67, 50, 0.22)')
+    ground.addColorStop(1, 'rgba(22, 55, 40, 0.45)')
     ctx.fillStyle = ground
-    ctx.fillRect(0, H * 0.82, W, H * 0.18)
+    ctx.fillRect(0, H * 0.78, W, H * 0.22)
     blades.forEach(b => drawBlade(b))
     t++
     rafId = requestAnimationFrame(animate)
