@@ -53,6 +53,15 @@ export default async function PostDetailPage({ params }: Props) {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* 公開レベルバッジ */}
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
+                post.visibility === 'public'  ? 'border-indigo-200 text-indigo-600 bg-indigo-50' :
+                post.visibility === 'friends' ? 'border-amber-200 text-amber-600 bg-amber-50' :
+                                                'border-gray-200 text-gray-500 bg-gray-50'
+              }`}>
+                {post.visibility === 'public'  ? '🌐 全体公開' :
+                 post.visibility === 'friends' ? '👥 友達限定' : '🔒 非公開'}
+              </span>
               {/* moodバッジ */}
               {isDiary && post.mood && (
                 <span className={`text-sm px-2.5 py-1 rounded-full font-medium ${
@@ -60,8 +69,8 @@ export default async function PostDetailPage({ params }: Props) {
                   post.mood === 'sad'      ? 'bg-violet-50 text-violet-700' :
                   post.mood === 'positive' ? 'bg-orange-50 text-orange-700' : ''
                 }`}>
-                  {post.mood === 'happy' ? '😊 楽しい' :
-                   post.mood === 'sad'   ? '😔 つらい' : '💪 がんばる'}
+                  {post.mood === 'happy' ? '♬ 楽しい' :
+                   post.mood === 'sad'   ? '☁ かなしい' : '💪 がんばる'}
                 </span>
               )}
 

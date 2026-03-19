@@ -183,10 +183,10 @@ export default function PostForm() {
           <label className="block text-sm font-medium text-gray-700 mb-2">今日の気分（任意）</label>
           <div className="flex flex-wrap gap-2">
             {[
-              { value: 'happy',    label: '楽しい', emoji: '😊',
+              { value: 'happy',    label: '楽しい', emoji: '♬',
                 active: 'border-yellow-400 bg-yellow-50 text-yellow-700',
                 hover:  'hover:border-yellow-300 hover:bg-yellow-50' },
-              { value: 'sad',      label: 'つらい', emoji: '😔',
+              { value: 'sad',      label: 'かなしい', emoji: '☁',
                 active: 'border-violet-400 bg-violet-50 text-violet-700',
                 hover:  'hover:border-violet-300 hover:bg-violet-50' },
               { value: 'positive', label: 'がんばる', emoji: '💪',

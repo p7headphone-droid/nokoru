@@ -46,7 +46,7 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
               {MODE_BADGE[post.mode]?.icon} {MODE_BADGE[post.mode]?.label}
             </span>
           )}
-          {post.visibility && post.visibility !== 'public' && (
+          {post.visibility && (
             <span className={`text-xs font-medium ${VISIBILITY_BADGE[post.visibility].className}`}>
               {VISIBILITY_BADGE[post.visibility].icon} {VISIBILITY_BADGE[post.visibility].label}
             </span>

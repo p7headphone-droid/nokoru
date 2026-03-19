@@ -8,8 +8,8 @@ type MoodFilter = 'all' | 'happy' | 'sad' | 'positive'
 
 const MOOD_OPTIONS: { value: MoodFilter; label: string; emoji: string }[] = [
   { value: 'all',      label: 'すべて', emoji: '✨' },
-  { value: 'happy',    label: '楽しい', emoji: '😊' },
-  { value: 'sad',      label: 'つらい', emoji: '😔' },
+  { value: 'happy',    label: '楽しい', emoji: '♬' },
+  { value: 'sad',      label: 'かなしい', emoji: '☁' },
   { value: 'positive', label: 'がんばる', emoji: '💪' },
 ]
 
