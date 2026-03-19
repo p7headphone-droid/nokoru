@@ -10,6 +10,14 @@ const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 type Visibility = 'public' | 'friends' | 'private'
 type PostMode = 'note' | 'diary'
 
+const THEMES: { value: string; emoji: string }[] = [
+  { value: 'IT',   emoji: '💻' },
+  { value: '社会', emoji: '🌍' },
+  { value: '恋愛', emoji: '💕' },
+  { value: '読書', emoji: '📖' },
+  { value: '映画', emoji: '🎬' },
+]
+
 function getTodayTitle() {
   const now = new Date()
   return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
@@ -21,13 +29,19 @@ const VISIBILITY_OPTIONS: { value: Visibility; label: string; icon: string; desc
   { value: 'private', label: '非公開',   icon: '🔒', description: '自分だけが見られます' },
 ]
 
-export default function PostForm() {
-  const [mode, setMode] = useState<PostMode>('note')
+interface PostFormProps {
+  initialMode?: PostMode
+  initialTheme?: string | null
+}
+
+export default function PostForm({ initialMode = 'note', initialTheme = null }: PostFormProps) {
+  const [mode, setMode] = useState<PostMode>(initialMode)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [visibility, setVisibility] = useState<Visibility>('public')
+  const [visibility, setVisibility] = useState<Visibility>(initialMode === 'diary' ? 'friends' : 'public')
   const [mood, setMood] = useState<string | null>(null)
+  const [theme, setTheme] = useState<string | null>(initialTheme)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const autoFilledTitle = useRef(false)
@@ -68,6 +82,7 @@ export default function PostForm() {
         mode,
         visibility,
         mood: mode === 'diary' ? mood : null,
+        theme: mode === 'note' ? theme : null,
       })
       if (result && !result.success) setError(result.error ?? '投稿に失敗しました')
     })
@@ -176,6 +191,31 @@ export default function PostForm() {
           <p className="mt-1.5 text-xs text-gray-400">{activeVisibility.description}</p>
         )}
       </div>
+
+      {/* Theme (note only) */}
+      {!isDiary && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">テーマ（任意）</label>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 flex-nowrap">
+              {THEMES.map(t => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setTheme(theme === t.value ? null : t.value)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-sm font-medium whitespace-nowrap transition-all ${
+                    theme === t.value
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-gray-700'
+                  }`}
+                >
+                  {t.emoji} {t.value}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mood (diary only) */}
       {isDiary && (

@@ -4,6 +4,10 @@ import { ja } from 'date-fns/locale'
 import ReactionButtons from './ReactionButton'
 import type { Post, ReactionType, Visibility, PostMode } from '@/types'
 
+const THEME_EMOJI: Record<string, string> = {
+  'IT': '💻', '社会': '🌍', '恋愛': '💕', '読書': '📖', '映画': '🎬',
+}
+
 const VISIBILITY_BADGE: Record<Visibility, { icon: string; label: string; className: string }> = {
   public:  { icon: '🌐', label: '全体公開', className: 'text-indigo-600' },
   friends: { icon: '👥', label: '友達限定', className: 'text-amber-600' },
@@ -41,6 +45,11 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0 flex-nowrap">
+          {post.theme && (
+            <span className="text-[9px] sm:text-xs bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              {THEME_EMOJI[post.theme] ?? ''} {post.theme}
+            </span>
+          )}
           {post.mode && (
             <span className="text-[9px] sm:text-xs text-gray-400 whitespace-nowrap">
               {MODE_BADGE[post.mode]?.icon} {MODE_BADGE[post.mode]?.label}

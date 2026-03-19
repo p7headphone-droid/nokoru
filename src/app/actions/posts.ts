@@ -11,6 +11,7 @@ export async function createPost(formData: {
   mode?: 'note' | 'diary'
   visibility?: 'public' | 'friends' | 'private'
   mood?: string | null
+  theme?: string | null
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,6 +27,7 @@ export async function createPost(formData: {
       mode: formData.mode ?? 'note',
       visibility: formData.visibility ?? 'public',
       mood: formData.mood ?? null,
+      theme: formData.mode === 'note' ? (formData.theme ?? null) : null,
     })
     .select('id')
     .single()
@@ -46,6 +48,8 @@ export async function createPost(formData: {
   }
 
   revalidatePath('/')
+  revalidatePath('/study')
+  revalidatePath('/diary')
   redirect(`/post/${post.id}`)
 }
 
@@ -58,5 +62,7 @@ export async function deletePost(postId: string) {
   await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
 
   revalidatePath('/')
+  revalidatePath('/study')
+  revalidatePath('/diary')
   redirect('/')
 }

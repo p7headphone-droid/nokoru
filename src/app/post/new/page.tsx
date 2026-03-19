@@ -1,9 +1,17 @@
 import PostForm from '@/components/post/PostForm'
 
-export default function NewPostPage() {
+interface Props {
+  searchParams: Promise<{ mode?: string; theme?: string }>
+}
+
+export default async function NewPostPage({ searchParams }: Props) {
+  const params = await searchParams
+  const initialMode = params.mode === 'diary' ? 'diary' : 'note'
+  const initialTheme = params.theme ?? null
+
   return (
     <div className="max-w-3xl mx-auto">
-      <PostForm />
+      <PostForm initialMode={initialMode} initialTheme={initialTheme} />
     </div>
   )
 }

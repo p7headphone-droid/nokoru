@@ -142,11 +142,11 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
     const base = GREENS[Math.floor(Math.random() * GREENS.length)]
     return {
       x: (W / bladeCount) * i + (Math.random() - 0.5) * 4,
-      height: H * 0.10 + Math.random() * H * 0.18,
+      height: H * 0.10 + Math.random() * H * 0.20,
       width: 2 + Math.random() * 3,
       phase: Math.random() * Math.PI * 2,
-      swayAmount: 2 + Math.random() * 4,              // ゆっくり穏やかに揺れる（2-6px）
-      speed: 0.003 + Math.random() * 0.004,           // 速度をさらに落とす（0.003-0.007）
+      swayAmount: 8 + Math.random() * 10,             // 風でゆっくり穏やかに揺れる（8-18px）
+      speed: 0.015 + Math.random() * 0.010,           // 穏やかな速度（約4-8秒で1周期）
       color: base,
       tipColor: '#A8D5BA',
       hasFlower: Math.random() < 0.07,
@@ -160,7 +160,7 @@ function runHappyDay(canvas: HTMLCanvasElement): () => void {
 
   function drawBlade(blade: Blade) {
     const windSway = Math.sin(t * blade.speed + blade.phase) * blade.swayAmount
-      + Math.sin(t * blade.speed * 1.8 + blade.phase * 1.5) * (blade.swayAmount * 0.15) // 第2高調波を抑制
+      + Math.sin(t * blade.speed * 1.6 + blade.phase * 1.3) * (blade.swayAmount * 0.20) // 第2高調波
     const baseX = blade.x
     const baseY = H + 6                             // 画面下端より少し下から生やす
     const tipX = baseX + windSway

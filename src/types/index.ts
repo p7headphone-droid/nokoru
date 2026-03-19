@@ -24,6 +24,7 @@ export interface Post {
   visibility: Visibility
   mode: PostMode
   mood: string | null
+  theme: string | null
   created_at: string
   updated_at: string
   profile: Profile
